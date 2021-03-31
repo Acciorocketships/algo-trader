@@ -7,8 +7,6 @@ from AlgoTrader.Util import is_trading_day
 
 class Algo:
 
-	timezone = pytz.timezone('America/New_York')
-
 	def __init__(self, *args, **kwargs):
 		self.datetime = None
 		self.data = None
@@ -40,6 +38,13 @@ class Algo:
 
 	def order_target_percent(self, symbol, percent):
 		self.broker.order_target_percent(symbol=symbol, percent=percent, time=self.datetime)
+
+
+	def run_wrapper(self, time=None, update=True):
+		self.datetime = time
+		if update and not self.data.live:
+			self.data.update_symbols()
+		self.run()
 
 
 	def init(self):

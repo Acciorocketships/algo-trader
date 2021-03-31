@@ -6,11 +6,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.combining import OrTrigger
 import json
-from AlgoTrader.Util import timeframe_to_timedelta
+from AlgoTrader.Util import get_api, timeframe_to_timedelta, trading_day_offset
 from AlgoTrader.Logger import Logger
-
-with open('creds.txt') as f:
-	creds = json.load(f)
 
 class AlpacaData:
 
@@ -20,10 +17,7 @@ class AlpacaData:
 						start=0, end=datetime.datetime.now(),
 						live=False, callbacks=[], schedule=["* 9-16 * * *"]):
 
-		self.api = tradeapi.REST(creds["ALPACA_API_KEY"], 
-					creds["ALPACA_SECRET_KEY"],
-					base_url='https://api.alpaca.markets', 
-					api_version='v2')
+		self.api = get_api(paper=True)
 
 		self.calc_start_end(start, end)
 		self.timeframe = timeframe
@@ -34,7 +28,7 @@ class AlpacaData:
 			self.load_symbols(symbols)
 
 		self.live = live
-		self.trigger = OrTrigger([CronTrigger.from_crontab(cron) for cron in schedule])
+		self.trigger = OrTrigger([CronTrigger.from_crontab(cron, timezone=AlpacaData.timezone) for cron in schedule])
 		self.scheduler = BackgroundScheduler()
 		self.scheduler.configure(timezone=AlpacaData.timezone)
 		self.callbacks = callbacks
@@ -51,26 +45,13 @@ class AlpacaData:
 		if isinstance(start, datetime.datetime):
 			self.start = start
 		else:
-			self.start = self.trading_day_offset(day=end, offset=-start)
+			self.start = trading_day_offset(day=end, offset=-start)
 		if isinstance(end, datetime.datetime):
 			self.end = end
 		else:
-			self.end = self.trading_day_offset(day=start, offset=end)
+			self.end = trading_day_offset(day=start, offset=end)
 		if self.end.hour==0 and self.end.minute==0:
 			self.end = self.end.replace(hour=23,minute=59)
-
-
-	def trading_day_offset(self, day, offset):
-		if isinstance(day, pd.Timestamp):
-			day = day.to_pydatetime()
-		if offset < 0:
-			roughstart = day - datetime.timedelta(days=2*abs(offset)+5)
-			cal = self.api.get_calendar(start=roughstart.strftime("%Y-%m-%d"), end=day.strftime("%Y-%m-%d"))
-			return cal[offset].date.to_pydatetime()
-		else:
-			roughend = day + datetime.timedelta(days=2*abs(offset)+5)
-			cal = self.api.get_calendar(start=day.strftime("%Y-%m-%d"), end=roughend.strftime("%Y-%m-%d"))
-			return cal[offset].date.to_pydatetime()
 
 
 	def load_symbols(self, symbols=[]):
@@ -118,7 +99,7 @@ class AlpacaData:
 			else:
 				last_time = self.data[symbol].index[-1]
 				new_data = self.get_data(symbol=symbol, start=last_time, end=current_time, timeframe=self.timeframe)
-				updated_data = pd.concat([old_data[:-2], new_data])
+				updated_data = pd.concat([old_data[:-1], new_data])
 				self.data[symbol] = updated_data
 				new_data_dict = new_data
 		return new_data_dict
@@ -145,9 +126,9 @@ class AlpacaData:
 
 	def get(self, symbol, start=None, end=None, length=None):
 		if isinstance(start, int):
-			start = self.trading_day_offset(day=end, offset=-start)
+			start = trading_day_offset(day=end, offset=-start)
 		if isinstance(end, int):
-			end = self.trading_day_offset(day=start, offset=end)
+			end = trading_day_offset(day=start, offset=end)
 		if isinstance(start, datetime.datetime):
 			start = pd.Timestamp(start)
 		if isinstance(end, datetime.datetime):
@@ -181,7 +162,6 @@ class AlpacaData:
 
 
 if __name__ == '__main__':
-	data = AlpacaData(start=5, timeframe='minute', symbols=["SPY"], live=False)
-	time1 = datetime.datetime(2021,3,27)
+	data = AlpacaData(start=5, timeframe='minute', symbols=["SPY"], live=True)
 	import pdb; pdb.set_trace()
 

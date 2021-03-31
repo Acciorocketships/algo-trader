@@ -23,4 +23,4 @@ if __name__ == '__main__':
 	manager = Manager(data)
 	algo = MACDstrategy()
 	manager.add_algo(algo)
-	manager.backtest(start=datetime.datetime(2018,1,1), end=datetime.datetime(2019,1,1))
+	manager.backtest(start=datetime.datetime(2018,1,1), end=datetime.datetime(2018,1,1))
