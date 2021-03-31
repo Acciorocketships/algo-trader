@@ -2,7 +2,7 @@ from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.combining import OrTrigger
 import datetime
 import pytz
-from Util import is_trading_day
+from AlgoTrader.Util import is_trading_day
 
 
 class Algo:

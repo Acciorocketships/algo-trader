@@ -1,4 +1,4 @@
-import numpy as np
+import math
 import alpaca_trade_api as tradeapi
 
 class BacktestBroker:
@@ -38,7 +38,7 @@ class BacktestBroker:
 		self.update_value(time)
 		price = self.data.quote(symbol, time)
 		current_amount = self.positions.get(symbol, 0)
-		desired_amount = np.floor(self.value * percent / price)
+		desired_amount = math.floor(self.value * percent / price)
 		diff = desired_amount - current_amount
 		if percent > 1 or percent < 0:
 			print("Order Failed. The target percent must be between 0 and 1, \

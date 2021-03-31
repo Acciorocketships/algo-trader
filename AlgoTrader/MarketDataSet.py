@@ -1,6 +1,6 @@
-from torch.utils.data import DataSet
+from torch.utils.data import Dataset
 
-class MarketDataSet(DataSet):
+class MarketDataSet(Dataset):
 
 	def __init__(self, dataobj, hist=1, datatypes=['open']):
 		self.dataobj = dataobj
@@ -40,6 +40,6 @@ def collate_fn(sample_list):
 		if symbol != 't':
 			if symbol not in tensors:
 				tensors[symbol] = {}
-			for datatype, data in datapoints[symbol].items()
+			for datatype, data in datapoints[symbol].items():
 				tensors[symbol][datatype] = torch.cat(data, dim=0)
 	return tensors

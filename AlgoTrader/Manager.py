@@ -1,7 +1,8 @@
 import datetime
-from AlpacaData import AlpacaData
-from Broker import BacktestBroker, AlpacaBroker
-from Util import next_runtime, equals_runtime
+from AlgoTrader.AlpacaData import AlpacaData
+from AlgoTrader.Broker import BacktestBroker, AlpacaBroker
+from AlgoTrader.Logger import Logger
+from AlgoTrader.Util import next_runtime, equals_runtime
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.combining import OrTrigger
 
@@ -12,6 +13,7 @@ class Manager:
 		self.data = data
 		self.algos = []
 		self.broker = None
+		self.logger = Logger()
 		self.datetime = datetime.datetime.now()
 	
 
@@ -30,7 +32,7 @@ class Manager:
 		self.algos.append(algo)
 
 
-	def backtest(self, start=datetime.datetime(2021,3,1), end=datetime.datetime.now(), logschedule=["31 9 * * *"]):
+	def backtest(self, start=datetime.datetime(2021,3,1), end=datetime.datetime.now(), logschedule=["30 9 * * *"]):
 		self.init_broker(backtest=True, data=self.data)
 		log_trigger = OrTrigger([CronTrigger.from_crontab(cron) for cron in logschedule])
 		algo_trigger = OrTrigger([algo.trigger for algo in self.algos])
@@ -44,11 +46,19 @@ class Manager:
 			if equals_runtime(log_trigger, self.datetime):
 				self.log_state()
 			self.datetime = next_runtime(trigger, self.datetime)
+		metrics = self.logger.metrics()
+		for metric, value in metrics.items():
+			print("{metric}: {value:.3f}".format(metric=metric, value=value))
+		self.logger.report()
 
 
 	def log_state(self):
 		self.broker.update_value(self.datetime)
-		print("{date} Value: ${value:.2f}".format(date=str(self.datetime.date()), value=self.broker.value))
+		value = self.broker.value
+		benchmark_value = self.data.quote("SPY", self.datetime)
+		self.logger.append(value, self.datetime)
+		self.logger.append(benchmark_value, self.datetime, benchmark=True)
+
 
 
 

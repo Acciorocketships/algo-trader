@@ -1,11 +1,12 @@
-import backtrader as bt
+import pandas_market_calendars as mcal
 import datetime
 
+nyse = mcal.get_calendar('NYSE')
+
+
 def is_trading_day(date):
-	trading_calendar = bt.TradingCalendar()
-	yesterday = date - datetime.timedelta(days=1)
-	nextday = trading_calendar._nextday(yesterday)[0]
-	return date.date() == nextday.date()
+	date_range = nyse.schedule(start_date=date, end_date=date)
+	return len(date_range) > 0
 
 
 def next_runtime(trigger, time):

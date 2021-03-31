@@ -1,13 +1,13 @@
-from Algo import Algo
-from Manager import Manager
-from AlpacaData import AlpacaData
+from AlgoTrader.Algo import Algo
+from AlgoTrader.Manager import Manager
+from AlgoTrader.AlpacaData import AlpacaData
 import ta
 import datetime
 
 class MACDstrategy(Algo):
 
 	def init(self):
-		self.set_schedule(["31 9 * * *"])
+		self.set_schedule(["30 9 * * *"])
 
 	def run(self):
 		hist = self.get_data("SPY", days=20)
@@ -19,8 +19,8 @@ class MACDstrategy(Algo):
 			self.order_target_percent("SPY", 0.0)
 
 if __name__ == '__main__':
-	data = AlpacaData(start=datetime.datetime(2017,11,20), end=datetime.datetime(2018,3,15), timeframe='minute', symbols=["SPY"], live=False)
+	data = AlpacaData(start=datetime.datetime(2017,11,20), end=datetime.datetime(2019,1,1), timeframe='minute', symbols=["SPY"], live=False)
 	manager = Manager(data)
 	algo = MACDstrategy()
 	manager.add_algo(algo)
-	manager.backtest(start=datetime.datetime(2018,1,1), end=datetime.datetime(2018,3,15))
+	manager.backtest(start=datetime.datetime(2018,1,1), end=datetime.datetime(2019,1,1))

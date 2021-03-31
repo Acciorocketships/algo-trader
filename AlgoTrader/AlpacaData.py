@@ -6,7 +6,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.combining import OrTrigger
 import json
-from Util import timeframe_to_timedelta
+from AlgoTrader.Util import timeframe_to_timedelta
+from AlgoTrader.Logger import Logger
 
 with open('creds.txt') as f:
 	creds = json.load(f)
