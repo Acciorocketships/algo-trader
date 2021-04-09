@@ -28,8 +28,19 @@ class Algo:
 		self.broker = broker
 
 
-	def get_data(self, symbol, length=1, days=None, datatype='open'):
-		return self.data.get(symbol, length=length, start=days, end=self.datetime)[datatype]
+	def get_data(self, symbol, length=1, days=None):
+		if self.data.timeframe == 'minute':
+			return self.data.get(symbol, length=length, start=days, end=self.datetime)['open']
+		elif self.data.timeframe == 'day':
+			if self.datetime.time() < datetime.time(15,55):
+				open_day_prices = self.data.get(symbol, length=length, start=days, end=self.datetime)['open']
+				open_day_prices.index = [ts.replace(hour=9, minute=30) for ts in open_day_prices.index]
+				return open_day_prices
+			else:
+				close_day_prices = self.data.get(symbol, length=length, start=days, end=self.datetime)['close']
+				close_day_prices.index = [ts.replace(hour=16, minute=0) for ts in close_day_prices.index]
+				return close_day_prices
+
 
 
 	def order(self, symbol, amount):

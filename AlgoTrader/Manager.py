@@ -2,6 +2,7 @@ import datetime
 import pytz
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.combining import OrTrigger
+from apscheduler.schedulers.background import BackgroundScheduler
 from AlgoTrader.AlpacaData import AlpacaData
 from AlgoTrader.Broker import BacktestBroker, AlpacaBroker
 from AlgoTrader.Logger import Logger

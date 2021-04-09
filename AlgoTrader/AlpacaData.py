@@ -130,9 +130,9 @@ class AlpacaData:
 		if isinstance(end, int):
 			end = trading_day_offset(day=start, offset=end)
 		if isinstance(start, datetime.datetime):
-			start = pd.Timestamp(start)
+			start = pd.Timestamp(start.replace(tzinfo=None))
 		if isinstance(end, datetime.datetime):
-			end = pd.Timestamp(end)
+			end = pd.Timestamp(end.replace(tzinfo=None))
 		if start is None:
 			if length is None:
 				start = self.data[symbol].index[0]
@@ -152,10 +152,16 @@ class AlpacaData:
 		idx = self.data[symbol].index.get_loc(pd.Timestamp(time), method='pad')
 		idx_time = self.data[symbol].index[idx]
 		curr_time = pd.Timestamp(time).replace(tzinfo=AlpacaData.timezone)
-		if curr_time >= idx_time + timeframe_to_timedelta(self.timeframe):
-			datatype = 'close'
+		if self.timeframe != 'day':
+			if curr_time >= idx_time + timeframe_to_timedelta(self.timeframe):
+				datatype = 'close'
+			else:
+				datatype = 'open'
 		else:
-			datatype = 'open'
+			if curr_time.to_pydatetime().time() < datetime.time(15,55):
+				datatype = 'open'
+			else:
+				datatype = 'close'
 		return self.data[symbol][datatype][idx]
 
 

@@ -3,3 +3,5 @@ creds.txt
 *__pycache__*
 *.egg-info/
 *.html
+runs/
+*.pt
