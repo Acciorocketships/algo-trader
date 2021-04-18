@@ -72,10 +72,12 @@ class Manager:
 		trigger = OrTrigger([algo_trigger, log_trigger])
 		self.datetime = start
 		while self.datetime < end:
-			print(self.datetime)
 			for algo in self.algos:
 				if equals_runtime(algo.trigger, self.datetime):
-					algo.run_wrapper(time=self.datetime.replace(tzinfo=Manager.timezone), update=False)
+					print(self.datetime)
+					time = Manager.timezone.localize(self.datetime)
+					self.broker.check_limit_orders(time=time)
+					algo.run_wrapper(time=time, update=False)
 			if equals_runtime(log_trigger, self.datetime):
 				self.log_state()
 			self.datetime = next_runtime(trigger, self.datetime)

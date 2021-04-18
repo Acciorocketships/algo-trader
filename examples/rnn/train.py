@@ -7,26 +7,15 @@ import math
 import webbrowser
 from AlgoTrader.AlpacaData import AlpacaData
 from AlgoTrader.MarketDataSet import MarketDataSet, collate_fn
-from Model import MarketPredictor, create_indicators, percent_change
+from Model import MarketPredictor, create_indicators, percent_change, loss_fn, stats
 
 
-def create_data(prices, window=12):
+def create_data(prices, window):
 	datapoint = create_indicators(prices[:,:-1], window)
-	X = torch.stack([datapoint['pct'], datapoint['macd1'], datapoint['macd2'],  datapoint['var']], dim=2)
+	X = torch.stack([datapoint['pct'], datapoint['macd1'], datapoint['macd2'],  datapoint['var']], dim=-1)
 	pct_output = percent_change(prices[:,-2:])
 	Y = pct_output[:,0] * 100
 	return X, Y
-
-
-def loss_fn(dist, truth):
-	# negative log loss, which approximates the KL-divergence in expectation
-	logprob = -dist.log_prob(truth)
-	return logprob.mean()
-
-
-def accuracy(dist, truth):
-	correct = torch.sign(dist.mean) == torch.sign(truth)
-	return torch.sum(correct) / torch.numel(correct)
 
 
 def load_model(model, path):
@@ -48,8 +37,11 @@ def save_model(model, path):
 
 if __name__ == '__main__':
 
+	length = 41
+	window = 18
+
 	alpacadata = AlpacaData(symbols=["SPY"], timeframe='day', start=3000, end=datetime.datetime(2017,1,1))
-	dataset = MarketDataSet(alpacadata, hist=40, datatypes=['open'])
+	dataset = MarketDataSet(alpacadata, hist=length, datatypes=['open'])
 	train_dataset, val_dataset = torch.utils.data.random_split(dataset, [len(dataset)-300, 300])
 	train_dataloader = DataLoader(train_dataset, batch_size=32, shuffle=True, collate_fn=collate_fn)
 	val_dataloader = DataLoader(val_dataset, batch_size=32, shuffle=True, collate_fn=collate_fn)
@@ -68,10 +60,10 @@ if __name__ == '__main__':
 	optimiser = torch.optim.Adam(model.parameters(), lr=1e-3)
 
 	t = 0
-	for epoch in range(300):
+	for epoch in range(150):
 		for sample in train_dataloader:
 
-			X, Y = create_data(sample["SPY"]["open"])
+			X, Y = create_data(sample["SPY"]["open"], window=window)
 
 			model.train()
 			optimiser.zero_grad()
@@ -81,8 +73,10 @@ if __name__ == '__main__':
 			loss = loss_fn(dist, Y)
 			loss.backward()
 			tensorboard.add_scalar('loss/train', loss, t)
-			acc = accuracy(dist, Y)
-			tensorboard.add_scalar('accuracy/train', acc, t)
+			stat = stats(dist, Y)
+			tensorboard.add_scalar('accuracy/train', stat['accuracy'], t)
+			tensorboard.add_scalar('precision/train', stat['precision'], t)
+			tensorboard.add_scalar('recall/train', stat['recall'], t)
 
 			optimiser.step()
 
@@ -90,12 +84,14 @@ if __name__ == '__main__':
 				model.eval()
 				optimiser.zero_grad()
 				val_sample = next(iter(val_dataloader))
-				X, Y = create_data(val_sample["SPY"]["open"])
+				X, Y = create_data(val_sample["SPY"]["open"], window=window)
 				dist = model(X)
 				loss = loss_fn(dist, Y)
 				tensorboard.add_scalar('loss/val', loss, t)
-				acc = accuracy(dist, Y)
-				tensorboard.add_scalar('accuracy/val', acc, t)
+				stat = stats(dist, Y)
+				tensorboard.add_scalar('accuracy/val', stat['accuracy'], t)
+				tensorboard.add_scalar('precision/val', stat['precision'], t)
+				tensorboard.add_scalar('recall/val', stat['recall'], t)
 
 			t += 1
 

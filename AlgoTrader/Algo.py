@@ -43,12 +43,16 @@ class Algo:
 
 
 
-	def order(self, symbol, amount):
-		self.broker.order(symbol=symbol, amount=amount, time=self.datetime)
+	def order(self, symbol, amount, limit=None, stop=None):
+		self.broker.order(symbol=symbol, amount=amount, limit=limit, stop=stop, time=self.datetime)
 
 
-	def order_target_percent(self, symbol, percent):
-		self.broker.order_target_percent(symbol=symbol, percent=percent, time=self.datetime)
+	def order_target_percent(self, symbol, percent, limit=None, stop=None):
+		self.broker.order_target_percent(symbol=symbol, percent=percent, limit=limit, stop=stop, time=self.datetime)
+
+
+	def cancel_orders(self, symbol=None):
+		self.broker.cancel_orders(symbol)
 
 
 	def run_wrapper(self, time=None, update=True):

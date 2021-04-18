@@ -85,6 +85,8 @@ class AlpacaData:
 			slice_end = df.index[0]
 			if slice_end <= orig_start:
 				break
+		if timeframe == 'day':
+			data.index = [ts.replace(hour=9, minute=30) for ts in data.index]
 		return data[orig_start:orig_end]
 
 

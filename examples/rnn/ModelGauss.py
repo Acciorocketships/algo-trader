@@ -10,7 +10,7 @@ class MarketPredictor(torch.nn.Module):
 		self.recurrent = recurrent
 		# Parameters
 		self.finput_layer_sizes = [input_channels, 8, 16, 16]
-		self.foutput_layer_sizes = [16, 16, 8, 3]
+		self.foutput_layer_sizes = [16, 16, 8, 2]
 		# Networks
 		self.finput = self.create_net(layer_sizes=self.finput_layer_sizes)
 		self.foutput = self.create_net(layer_sizes=self.foutput_layer_sizes, omit_last_activation=True)
@@ -37,41 +37,32 @@ class MarketPredictor(torch.nn.Module):
 			for t in range(timesteps):
 				hidden = self.gru(x_input[:,t,:], hidden)
 			x_output = self.foutput(hidden)
-			return nn.functional.softmax(x_output, dim=1)
+			return self.dist(x_output[:,0], x_output[:,1])
 		else:
 			batch, channels = x.shape
 			x_input = self.finput(x)
 			x_output = self.foutput(x_input)
-			return nn.functional.softmax(x_output, dim=1)
+			return self.dist(x_output[:,0], x_output[:,1])
 
 
-def to_categorical(data):
-	categories = torch.zeros(data.shape[0])
-	categories[data > -0.3] = 1
-	categories[data > 0.3] = 2
-	return categories.long()
+	def dist(self, mean, var):
+		return Normal(mean, torch.abs(var))
+
+
 
 def loss_fn(dist, truth):
 	# negative log loss, which approximates the KL-divergence in expectation
-	categories = to_categorical(truth)
-	xentropy = torch.nn.CrossEntropyLoss()
-	loss = xentropy(dist, categories)
-	return loss
+	logprob = -dist.log_prob(truth)
+	return logprob.mean()
+
 
 def stats(dist, truth):
-	dist_cat = torch.argmax(dist, dim=1)
-	truth_cat = to_categorical(truth)
-	accuracy = torch.sum(dist_cat == truth_cat) / torch.numel(truth_cat)
-	dist_pos = dist_cat == 2
-	truth_pos = truth_cat == 2
-	correct = torch.sum(dist_pos & truth_pos)
-	precision = correct / torch.sum(dist_pos)
-	recall = correct / torch.sum(truth_pos)
-	return {"accuracy": accuracy, "precision": precision, "recall": recall}
+	correct = torch.sign(dist.mean) == torch.sign(truth)
+	accuracy = torch.sum(correct) / torch.numel(correct)
+	return {"accuracy": accuracy}
 
 
-
-def create_indicators(prices, window, series=True):
+def create_indicators(prices, window=18):
 	# prices: batch x time (most recent last)
 
 	data = {}
@@ -80,26 +71,18 @@ def create_indicators(prices, window, series=True):
 	malong = moving_average(prices, window=int(window/2))[:,-input_length:]
 	mashort = moving_average(prices, window=int(window/6))[:,-input_length:]
 	macd1 = (mashort - malong) / malong
-	if not series:
-		macd1 = macd1[:,-1]
 	data['macd1'] = macd1 * 100
 
 	malong = moving_average(prices, window=int(window))[:,-input_length:]
 	mashort = moving_average(prices, window=int(window/3))[:,-input_length:]
 	macd2 = (mashort - malong) / malong
-	if not series:
-		macd2 = macd2[:,-1]
 	data['macd2'] = macd2 * 100
 
 	pct = percent_change(prices)[:,-input_length:]
-	if not series:
-		pct = pct[:,-1]
 	data['pct'] = pct * 100
 
-	x = nn.functional.unfold(prices.unsqueeze(1).unsqueeze(3), kernel_size=(window,1)) # batch x channels (1) x dim1 (t) x dim2 (1)
+	x = nn.functional.unfold(prices.unsqueeze(1).unsqueeze(3), kernel_size=(12,1)) # batch x channels (1) x dim1 (t) x dim2 (1)
 	var = torch.var(x, dim=1)
-	if not series:
-		var = var[:,-1]
 	data['var'] = (var / malong) * 100
 
 	return data
