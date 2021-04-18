@@ -89,7 +89,8 @@ class Manager:
 		self.logger.report()
 
 
-	def run(self, log_schedule=["30 9 * * *"]):
+	def run(self, paper=True, log_schedule=["30 9 * * *"]):
+		self.init_broker(backtest=False, paper=paper)
 		for algo in self.algos:
 			trigger = convert_trigger_timezone(algo.trigger, Manager.timezone)
 			job = self.scheduler.add_job(self.run_algo_live, trigger, kwargs={'algo': algo})
