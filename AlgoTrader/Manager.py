@@ -1,5 +1,6 @@
 import datetime
 import pytz
+import code
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.combining import OrTrigger
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -62,6 +63,7 @@ class Manager:
 
 	def run_algo_live(self, algo):
 		time = datetime.datetime.now().astimezone(Manager.timezone)
+		print("{time}: Running {algo}".format(time=time, algo=algo.__class__.__name__))
 		algo.run_wrapper(time=time, update=True)
 
 

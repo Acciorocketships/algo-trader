@@ -15,7 +15,7 @@ class MACDstrategy(Algo):
 			hist = hist.at_time(datetime.time(9,30))
 		macd = ta.trend.macd_diff(hist, window_slow=10, window_fast=5, window_sign=3)[-1]
 		if macd > 0:
-			self.order_target_percent("SPY", 1.0, stop=-0.06)
+			self.order_target_percent("SPY", 1.0)
 		else:
 			self.order_target_percent("SPY", 0.0)
 			self.cancel_orders("SPY")
