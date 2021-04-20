@@ -76,6 +76,8 @@ class AlpacaData:
 			endts = slice_end.isoformat()
 			df = self.api.get_barset(symbol, timeframe, start=startts, end=endts, limit=1000).df[symbol]
 			if len(df) <= 1:
+				if data is None:
+					data = df
 				break
 			if data is None:
 				data = df
