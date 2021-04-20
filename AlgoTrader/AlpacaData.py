@@ -75,10 +75,12 @@ class AlpacaData:
 			startts = slice_start.isoformat()
 			endts = slice_end.isoformat()
 			df = self.api.get_barset(symbol, timeframe, start=startts, end=endts, limit=1000).df[symbol]
+			if len(df) <= 1:
+				if data is None:
+					data = df
+				break
 			if data is None:
 				data = df
-			if len(df) <= 1:
-				break
 			else:
 				df = df[:df.index[-2]]
 				data = pd.concat([df, data]) # try combine_first as well
