@@ -132,9 +132,9 @@ class AlpacaData:
 		if isinstance(end, int):
 			end = trading_day_offset(day=start, offset=end)
 		if isinstance(start, datetime.datetime):
-			start = pd.Timestamp(start.replace(tzinfo=None))
+			start = pd.Timestamp(start.replace(tzinfo=AlpacaData.timezone))
 		if isinstance(end, datetime.datetime):
-			end = pd.Timestamp(end.replace(tzinfo=None))
+			end = pd.Timestamp(end.replace(tzinfo=AlpacaData.timezone))
 		if start is None:
 			if length is None:
 				start = self.data[symbol].index[0]
