@@ -88,3 +88,14 @@ def np_to_datetime(time):
 			times[idx] = np_to_datetime(time[idx])
 		return times
 
+def build_trigger(schedule):
+	if isinstance(schedule, list) and len(schedule) > 1:
+		trigger = OrTrigger([CronTrigger(**cron) for cron in schedule])
+	else:
+		if isinstance(schedule, list):
+			cron = schedule[0]
+		else:
+			cron = schedule
+		trigger = CronTrigger(**cron)
+	return trigger
+

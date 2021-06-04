@@ -7,7 +7,7 @@ import datetime
 class MACDstrategy(Algo):
 
 	def init(self):
-		self.set_schedule(["30 9 * * *"])
+		self.set_schedule({"second": 5, "minute": 30, "hour": 9, "day_of_week": "mon-fri"})
 
 	def run(self):
 		hist = self.get_data("SPY", days=20)
@@ -21,8 +21,8 @@ class MACDstrategy(Algo):
 			self.cancel_orders("SPY")
 
 if __name__ == '__main__':
-	data = AlpacaData(start=datetime.datetime(2017,11,1), end=datetime.datetime(2021,4,1), timeframe='day', symbols=["SPY"], live=False)
+	data = AlpacaData(start=datetime.datetime(2018,11,1), end=datetime.datetime(2021,6,4), timeframe='day', symbols=["SPY"], live=False)
 	manager = Manager(data)
 	algo = MACDstrategy()
 	manager.add_algo(algo)
-	manager.backtest(start=datetime.datetime(2018,1,1), end=datetime.datetime(2021,4,1))
+	manager.backtest(start=datetime.datetime(2019,1,1), end=datetime.datetime(2021,6,4))

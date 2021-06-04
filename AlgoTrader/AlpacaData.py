@@ -6,7 +6,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.combining import OrTrigger
 import json
-from AlgoTrader.Util import get_api, timeframe_to_timedelta, trading_day_offset
+from AlgoTrader.Util import get_api, timeframe_to_timedelta, trading_day_offset, build_trigger, convert_trigger_timezone
 from AlgoTrader.Logger import Logger
 
 class AlpacaData:
@@ -15,7 +15,7 @@ class AlpacaData:
 
 	def __init__(self, symbols=["SPY"], timeframe='minute',
 						start=0, end=datetime.datetime.now(),
-						live=False, callbacks=[], schedule=["* 9-16 * * *"]):
+						live=False, callbacks=[], schedule=[{"second": 0, "minute": "*", "hour": "9-16", "day_of_week": "mon-fri"}]):
 
 		self.api = get_api(paper=True)
 
@@ -28,7 +28,7 @@ class AlpacaData:
 			self.load_symbols(symbols)
 
 		self.live = live
-		self.trigger = OrTrigger([CronTrigger.from_crontab(cron, timezone=AlpacaData.timezone) for cron in schedule])
+		self.trigger = convert_trigger_timezone(build_trigger(schedule), AlpacaData.timezone)
 		self.scheduler = BackgroundScheduler()
 		self.scheduler.configure(timezone=AlpacaData.timezone)
 		self.callbacks = callbacks

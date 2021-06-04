@@ -2,7 +2,7 @@ from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.combining import OrTrigger
 import datetime
 import pytz
-from AlgoTrader.Util import is_trading_day
+from AlgoTrader.Util import is_trading_day, build_trigger
 
 
 class Algo:
@@ -11,13 +11,12 @@ class Algo:
 		self.datetime = None
 		self.data = None
 		self.next_runtime = None
-		self.set_schedule(["* 9-16 * * *"])
+		self.set_schedule([{"second": 5, "minute": 30, "hour": 9, "day_of_week": "mon-fri"}])
 		self.init(*args, **kwargs)
 
 
 	def set_schedule(self, schedule):
-		self.schedule = schedule
-		self.trigger = OrTrigger([CronTrigger.from_crontab(cron) for cron in schedule])
+		self.trigger = build_trigger(schedule)
 
 
 	def set_data_source(self, data):

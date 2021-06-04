@@ -7,7 +7,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from AlgoTrader.AlpacaData import AlpacaData
 from AlgoTrader.Broker import BacktestBroker, AlpacaBroker
 from AlgoTrader.Logger import Logger
-from AlgoTrader.Util import next_runtime, equals_runtime, convert_trigger_timezone
+from AlgoTrader.Util import next_runtime, equals_runtime, convert_trigger_timezone, build_trigger
 
 
 class Manager:
@@ -62,14 +62,14 @@ class Manager:
 
 
 	def run_algo_live(self, algo):
-		time = datetime.datetime.now().astimezone(Manager.timezone)
-		print("{time}: Running {algo}".format(time=time, algo=algo.__class__.__name__))
-		algo.run_wrapper(time=time, update=True)
+		self.datetime = datetime.datetime.now().astimezone(Manager.timezone)
+		# print("{time}: Running {algo}".format(time=self.datetime, algo=algo.__class__.__name__))
+		algo.run_wrapper(time=self.datetime, update=True)
 
 
-	def backtest(self, start=datetime.datetime(2021,3,1), end=datetime.datetime.now(), log_schedule=["30 9 * * *"]):
+	def backtest(self, start=datetime.datetime(2021,3,1), end=datetime.datetime.now(), log_schedule=[]):
 		self.init_broker(backtest=True, data=self.data)
-		log_trigger = OrTrigger([CronTrigger.from_crontab(cron) for cron in log_schedule])
+		log_trigger = build_trigger(log_schedule)
 		algo_trigger = OrTrigger([algo.trigger for algo in self.algos])
 		trigger = OrTrigger([algo_trigger, log_trigger])
 		self.datetime = start
@@ -89,16 +89,22 @@ class Manager:
 		self.logger.report()
 
 
-	def run(self, paper=True, log_schedule=["30 9 * * *"]):
+	def run(self, paper=True, log_schedule=[]):
 		self.init_broker(backtest=False, paper=paper)
+		self.datetime = datetime.datetime.now().astimezone(Manager.timezone)
 		for algo in self.algos:
 			trigger = convert_trigger_timezone(algo.trigger, Manager.timezone)
 			job = self.scheduler.add_job(self.run_algo_live, trigger, kwargs={'algo': algo})
 			self.jobs[algo] = job
-		log_trigger = convert_trigger_timezone(OrTrigger([CronTrigger.from_crontab(cron) for cron in log_schedule]), Manager.timezone)
+		log_trigger = convert_trigger_timezone(build_trigger(log_schedule), Manager.timezone)
 		job = self.scheduler.add_job(self.log_state, log_trigger)
 		self.jobs['logger'] = job
+		self.start()
 		self.interact()
+
+
+	def start(self):
+		self.scheduler.start()
 
 
 	def stop(self):
