@@ -124,3 +124,33 @@ algo.order_target_percent("SPY", percent=0.8) # buys or sells SPY so it is 80% o
 algo.order_target_percent("SPY") # cancels all orders for SPY
 ```
 ..* Cancels any outstanding buy or sell orders for the given stock (or all stocks if symbol=None)
+
+
+### Manager
+
+1. add_algo
+```python
+manager.add_algo(MACDstrategy()) # adds the MACD algo to the manager
+```
+..* Adds an algorithm to the manager so that it can be backtested or live traded
+..* If the broker or the data source are not set in the the algo's init, then they are set to the same sources as the manager.
+
+2. remove_algo
+```python
+manager.add_algo(manager.algos[0]) # removes the MACD algo from the manager
+```
+..* Removes an algorithm from the manager
+
+3. backtest
+```python
+manager.backtest(datetime.datetime(2020,1,1), end=100) # backtests all algorithms in the manager for 100 days starting from 1 Jan 2020 
+```
+..* Runs a backtest for all of the algorithms in the manager, returns a dict of stats, and saves a tearsheet
+..* Start and end can both be datetimes, or either one can be an int, which denotes x days before end or after start.
+
+4. run
+```python
+manager.run(paper=True, log_schedule=[{"minute": "30", "hour": "9", "day_of_week": "mon-fri"}]) # starts paper trading, logging the portfolio value at 9:30 on mon-fri
+```
+..* Starts live trading for all algorithms in the manager
+..* If paper=True, then it trades on the broker's paper account (not with real money)
