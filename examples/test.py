@@ -7,7 +7,7 @@ import datetime
 class Strategy(Algo):
 
 	def init(self):
-		self.set_schedule({"second": 5, "minute": "*", "hour": "*", "day_of_week": "mon-fri"})
+		self.set_schedule({"second": 5, "minute": "*", "hour": "9-16", "day_of_week": "mon-fri"})
 
 	def run(self):
 		price = self.get_data(symbol="SPY", length=1)
@@ -30,4 +30,4 @@ def live():
 	manager.run(paper=True, log_schedule={"minute": "*"})
 
 if __name__ == '__main__':
-	live()
+	backtest()
