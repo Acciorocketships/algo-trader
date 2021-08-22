@@ -35,8 +35,10 @@ class Manager:
 
 
 	def add_algo(self, algo, live=False):
-		algo.set_data_source(self.data)
-		algo.set_broker(self.broker)
+		if algo.data is None:
+			algo.set_data_source(self.data)
+		if algo.broker is None:
+			algo.set_broker(self.broker)
 		self.algos.append(algo)
 		if live:
 			trigger = convert_trigger_timezone(algo.trigger, Manager.timezone)
@@ -92,9 +94,10 @@ class Manager:
 		for metric, value in metrics.items():
 			print("{metric}: {value:.3f}".format(metric=metric, value=value))
 		self.logger.report()
+		return metrics
 
 
-	def run(self, paper=True, log_schedule=[]):
+	def run(self, paper=False, log_schedule=[{"minute": "30", "hour": "9", "day_of_week": "mon-fri"}]):
 		self.init_broker(backtest=False, paper=paper)
 		self.datetime = datetime.datetime.now().astimezone(Manager.timezone)
 		for algo in self.algos:

@@ -10,6 +10,7 @@ class Algo:
 	def __init__(self, *args, **kwargs):
 		self.datetime = None
 		self.data = None
+		self.broker = None
 		self.next_runtime = None
 		self.set_schedule([{"second": 5, "minute": 30, "hour": 9, "day_of_week": "mon-fri"}])
 		self.init(*args, **kwargs)
