@@ -42,28 +42,10 @@ def equals_runtime(trigger, time):
 	return time == trigger.get_next_fire_time(None, time.replace(tzinfo=None)).replace(tzinfo=None)
 
 
-def timeframe_to_timedelta(timeframe):
-	if timeframe == 'minute':
-		return datetime.timedelta(minutes=1)
-	if timeframe == 'day':
-		return datetime.timedelta(days=1)
-	if timeframe == 'hour':
-		return datetime.timedelta(hours=1)
-	if timeframe == 'second':
-		return datetime.timedelta(seconds=1)
-
-
-def get_api(paper=True):
-	with open('creds.txt') as f:
+def get_creds(key):
+	with open('creds.json') as f:
 		creds = json.load(f)
-	key_id = creds["ALPACA_PAPER_API_KEY"] if paper else creds["ALPACA_API_KEY"]
-	secret_key = creds["ALPACA_PAPER_SECRET_KEY"] if paper else creds["ALPACA_SECRET_KEY"]
-	if paper:
-		url = 'https://paper-api.alpaca.markets'
-	else:
-		url = 'https://api.alpaca.markets'
-	api = tradeapi.REST(key_id, secret_key, base_url=url, api_version='v2')
-	return api
+	return creds[key]
 
 
 def convert_trigger_timezone(trigger, timezone):

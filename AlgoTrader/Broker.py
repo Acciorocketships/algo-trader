@@ -1,7 +1,7 @@
 import math
 import datetime
 import pandas as pd
-from AlgoTrader.Util import get_api
+from AlgoTrader.Util import get_creds
 
 class BacktestBroker:
 
@@ -207,18 +207,14 @@ class AlpacaBroker:
 
 
 
-	def get_history(self, start=None, end=None, timeframe='day'):
-		if timeframe == 'day':
-			timeframe = '1D'
-		elif timeframe == 'minute':
-			timeframe = '1Min'
+	def get_history(self, start=None, end=None):
 		if start is None:
 			start = self.start_date
 		if end is None:
 			end = datetime.datetime.now()
 		start_date = start.date().isoformat()
 		end_date = end.date().isoformat()
-		hist = self.api.get_portfolio_history(date_start=start_date, date_end=end_date, timeframe=timeframe)
+		hist = self.api.get_portfolio_history(date_start=start_date, date_end=end_date, timeframe='1D')
 		times = [pd.Timestamp(time, unit='s') for time in hist.timestamp]
 		values = pd.Series(hist.equity, times)
 		return values
@@ -252,10 +248,6 @@ class AlpacaBroker:
 				self.api.cancel_order(order.id)
 
 
-
-# TODO: 
-# 1. order types other than market
-# 2. wait_until_filled(orderid)
 
 if __name__ == '__main__':
 	broker = AlpacaBroker(paper=True)

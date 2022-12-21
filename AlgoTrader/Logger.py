@@ -1,24 +1,33 @@
 import pandas as pd
+import numpy as np
 import quantstats as qs
 
 class Logger:
 
 	def __init__(self):
-		self.value = pd.Series(dtype=float)
-		self.benchmark = pd.Series(dtype=float)
+		self.value = []
+		self.benchmark = []
+		self.value_times = []
+		self.benchmark_times = []
 		self.returns = None
 		self.benchmark_returns = None
 
 	def append(self, val, time, benchmark=False):
-		newval = pd.Series([val], index=[pd.Timestamp(time)])
 		if benchmark:
-			self.benchmark = self.benchmark.append(newval)
+			self.benchmark.append(val)
+			self.benchmark_times.append(pd.Timestamp(time))
 		else:
-			self.value = self.value.append(newval)
+			self.value.append(val)
+			self.value_times.append(pd.Timestamp(time))
 
 	def calc_returns(self):
-		self.returns = (self.value[1:] / self.value[:-1].values) - 1
-		self.benchmark_returns = (self.benchmark[1:] / self.benchmark[:-1].values) - 1
+		self.value = np.array(self.value)
+		self.benchmark = np.array(self.benchmark)
+		self.returns = (self.value[1:] / self.value[:-1]) - 1
+		self.benchmark_returns = (self.benchmark[1:] / self.benchmark[:-1]) - 1
+		self.returns = pd.Series(self.returns, index=pd.Index(self.value_times[1:]), name="Algo")
+		self.benchmark_returns = pd.Series(self.benchmark_returns, index=pd.Index(self.benchmark_times[1:]), name="Benchmark")
+
 
 	def report(self, filename="report.html"):
 		if self.returns is None:

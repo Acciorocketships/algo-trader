@@ -1,4 +1,5 @@
 creds.txt
+creds.json
 *.DS_Store
 *__pycache__*
 *.egg-info/
