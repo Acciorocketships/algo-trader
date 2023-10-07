@@ -5,8 +5,7 @@ AlgoTrader simplifies the process of developing and deploying trading algorithms
 
 ## Installation
 ``` bash
-git clone https://github.com/Acciorocketships/AlgoTrader
-cd AlgoTrader
+cd algo-trader
 python3 -m pip install -e .
 ```
 
