@@ -6,7 +6,7 @@ AlgoTrader simplifies the process of developing and deploying trading algorithms
 ## Installation
 ``` bash
 cd algo-trader
-python3 -m pip install -e .
+pip install -e .
 ```
 
 ## Example
