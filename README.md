@@ -120,7 +120,7 @@ algo.order_target_percent("SPY", percent=0.8) # buys or sells SPY so it is 80% o
 
 6. cancel_orders
 ```python
-algo.order_target_percent("SPY") # cancels all orders for SPY
+algo.order_cancel_orders("SPY") # cancels all orders for SPY
 ```
 * Cancels any outstanding buy or sell orders for the given stock (or all stocks if symbol=None)
 
